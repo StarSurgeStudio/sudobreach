@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUDO_BREACH</title>
+    <!-- Links to your new CSS file -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="crt">
+    <div id="game-container">
+        <div id="header-info">
+            <span id="floor-display">FLOOR: 1/5</span>
+            <span>SYSTEM: ONLINE</span>
+        </div>
+
+        <div id="enemy-box">
+            <div id="enemy-name">[TARGET: FIREWALL_BASIC]</div>
+            <div id="enemy-hp-bar">HP: |||||||||||||||||||| 100%</div>
+            <div id="enemy-desc">"Standard security node."</div>
+        </div>
+
+        <div id="command-line" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+
+        <div id="deck">
+            <div class="card" draggable="true" ondragstart="drag(event)" id="card1" data-chips="50" data-mult="1">
+                [INJECT] <span class="card-stats">+50 DMG | x1 MULT</span>
+            </div>
+            <div class="card" draggable="true" ondragstart="drag(event)" id="card2" data-chips="10" data-mult="2">
+                [OVERRIDE] <span class="card-stats">+10 DMG | x2 MULT</span>
+            </div>
+        </div>
+
+        <button id="btn-execute" onclick="executeCommand()">EXECUTE SYNTAX</button>
+
+        <div id="overlay">
+            <h2 id="overlay-title">SYSTEM BREACHED</h2>
+            <p id="overlay-text">Select a module to add to your deck:</p>
+            <div id="loot-cards" style="display:flex; gap:10px; margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <!-- Links to your new JavaScript file -->
+    <script src="app.js"></script>
+</body>
+</html>
