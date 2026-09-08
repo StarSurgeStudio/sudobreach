@@ -51,16 +51,30 @@ A cyberpunk-themed roguelike deck-builder game built with vanilla HTML5, CSS3, a
    http://localhost:3000
    ```
 
+### Deploy to Vercel
+
+1. Push this repository to GitHub (e.g. `https://github.com/StarSurgeStudio/sudobreach`).
+2. Go to [vercel.com](https://vercel.com/) and click **"Add New Project"**.
+3. Import the `sudobreach` repository.
+4. Under **Environment Variables**, add:
+   - **Key:** `GEMINI_API_KEY`
+   - **Value:** `your_gemini_api_key_here`
+5. Click **Deploy**. Vercel will automatically configure the static site and the `/api/boss-prompt` serverless function.
+
 ---
 
 ## Project Structure
 
 ```
 sudobreach_mobile/
+├── api/                # Vercel Serverless Functions
+│   ├── boss-prompt.js  # Serverless AI boss prompt handler
+│   └── health.js       # Health check endpoint
 ├── .env.example        # Environment variable template
 ├── .gitignore          # Excludes secret credentials and local configs
 ├── package.json        # Project metadata and run scripts
-├── server.js           # Lightweight Node proxy and static file server
+├── server.js           # Local Node proxy and static file server
+├── vercel.json         # Vercel routing and serverless rewrites
 ├── www/                # Client-side web & mobile app bundle
 │   ├── index.html      # Main game interface
 │   ├── style.css       # CRT phosphor green styling and animations
@@ -72,4 +86,4 @@ sudobreach_mobile/
 
 ## Security
 
-All Gemini API calls are proxied through `server.js`. Secret keys are stored strictly in `.env` and are never exposed to client-side code or browser network inspectors.
+All Gemini API calls are proxied through serverless endpoints (`api/boss-prompt.js`) on Vercel or `server.js` locally. Secret keys are loaded strictly from the `GEMINI_API_KEY` environment variable and are never exposed to client-side code or browser network inspectors.
