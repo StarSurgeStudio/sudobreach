@@ -2,45 +2,176 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUDO_BREACH</title>
-    <!-- Links to your new CSS file -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SUDO_BREACH: Cyberpunk Roguelike</title>
+    <meta name="description" content="Cyberpunk roguelike deckbuilder with real-time AI boss battle against OMNI_MIND.">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="crt">
     <div id="game-container">
-        <div id="header-info">
-            <span id="floor-display">FLOOR: 1/5</span>
-            <span>SYSTEM: ONLINE</span>
+        <!-- TOP HUD -->
+        <header id="header-info">
+            <div class="hud-left">
+                <span id="seed-display" title="Daily Seed">DAILY: 2026-09-09</span>
+                <span id="streak-display" title="Current Daily Streak">🔥 0</span>
+            </div>
+            <div class="hud-right">
+                <span id="floor-display">FLOOR: 1/5</span>
+                <button id="btn-stats" onclick="window.showStatsModal()" title="View Hacker Stats">📊</button>
+                <button id="btn-audio" onclick="window.toggleAudio()" title="Toggle Sound">🔊</button>
+            </div>
+        </header>
+
+        <!-- PLAYER INTEGRITY (HP) & SHIELD -->
+        <section id="player-hud">
+            <div class="hud-label-row">
+                <span>SYSTEM INTEGRITY</span>
+                <span>
+                    <span id="player-shield-val" class="shield-badge">SHIELD: 0</span>
+                    <strong id="player-hp-val">100</strong>/100
+                </span>
+            </div>
+            <div class="hp-bar-track">
+                <div id="player-hp-fill" style="width: 100%;"></div>
+            </div>
+        </section>
+
+        <!-- ACTIVE SYSTEM ANOMALY BANNER -->
+        <div id="anomaly-banner" style="display: none;">
+            <div id="anomaly-title">⚠️ SYSTEM ANOMALY DETECTED</div>
+            <div id="anomaly-desc">Active Firewall: Reflects 10% damage back to your system.</div>
         </div>
 
-        <div id="enemy-box">
+        <!-- ENEMY DISPLAY -->
+        <section id="enemy-box">
             <div id="enemy-name">[TARGET: FIREWALL_BASIC]</div>
             <div id="enemy-hp-bar">HP: |||||||||||||||||||| 100%</div>
             <div id="enemy-desc">"Standard security node."</div>
+            <div id="enemy-intent">⚡ NODE RETALIATION: 15 DMG / CYCLE</div>
+        </section>
+
+        <!-- EXECUTION SYNTAX BUFFER -->
+        <div class="buffer-label-row">
+            <span id="buffer-label">EXECUTE SYNTAX &gt;&gt;</span>
+            <span id="buffer-count">0/3 SLOTS</span>
+        </div>
+        <div id="command-line" ondragover="allowDrop(event)" ondrop="drop(event)" title="Tap cards below or drag here to load syntax">
+            <div id="empty-buffer-hint">TAP OR DRAG MODULES HERE</div>
         </div>
 
-        <div id="command-line" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+        <!-- FLOATING COMBAT NUMBERS CONTAINER -->
+        <div id="combat-feedback"></div>
 
-        <div id="deck">
-            <div class="card" draggable="true" ondragstart="drag(event)" id="card1" data-chips="50" data-mult="1">
-                [INJECT] <span class="card-stats">+50 DMG | x1 MULT</span>
-            </div>
-            <div class="card" draggable="true" ondragstart="drag(event)" id="card2" data-chips="10" data-mult="2">
-                [OVERRIDE] <span class="card-stats">+10 DMG | x2 MULT</span>
+        <!-- PLAYER DECK / MODULES -->
+        <div class="deck-header-row">
+            <span>ACTIVE MODULE DECK</span>
+            <button id="btn-recall" onclick="window.recallAllCards()" title="Recall all cards to deck">RECALL ALL</button>
+        </div>
+        <div id="deck"></div>
+
+        <!-- ACTION CONTROLS -->
+        <div id="action-controls">
+            <button id="btn-execute" onclick="executeCommand()">EXECUTE SYNTAX</button>
+        </div>
+
+        <!-- LOOT SELECTION MODAL -->
+        <div id="overlay" class="modal-backdrop">
+            <div class="modal-box">
+                <h2 id="overlay-title">NODE COMPROMISED</h2>
+                <p id="overlay-text">Select a module to patch into your deck:</p>
+                <div id="loot-cards"></div>
             </div>
         </div>
 
-        <button id="btn-execute" onclick="executeCommand()">EXECUTE SYNTAX</button>
+        <!-- EMERGENCY OVERCLOCK (REWARDED AD) MODAL -->
+        <div id="modal-overclock" class="modal-backdrop">
+            <div class="modal-box overclock-box">
+                <div class="alert-header">🚨 [EMERGENCY OVERCLOCK PROTOCOL]</div>
+                <p>Override attempts depleted! Your daily streak is in jeopardy.</p>
+                
+                <div id="ad-player-container">
+                    <div id="ad-timer-text">SPONSOR STREAM: <span id="ad-seconds">15</span>s REMAINING</div>
+                    <div class="ad-progress-track">
+                        <div id="ad-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div id="ad-sponsor-label">[SECURE SPONSOR UPLINK: QUANTUM_DEFENSE_CORP]</div>
+                </div>
 
-        <div id="overlay">
-            <h2 id="overlay-title">SYSTEM BREACHED</h2>
-            <p id="overlay-text">Select a module to add to your deck:</p>
-            <div id="loot-cards" style="display:flex; gap:10px; margin-top:20px;"></div>
+                <div class="overclock-actions">
+                    <button id="btn-watch-ad" onclick="window.startRewardedAdStream()">
+                        WATCH AD STREAM (+2 ATTEMPTS)
+                    </button>
+                    <button id="btn-buy-pass" onclick="window.unlockRootAccessPass()">
+                        ACTIVATE ROOT PASS ($2.99 / UNLIMITED)
+                    </button>
+                    <button id="btn-abandon" onclick="window.triggerGameOver()">
+                        ACCEPT TRACE LOCKOUT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME OVER / REBOOT MODAL -->
+        <div id="modal-gameover" class="modal-backdrop">
+            <div class="modal-box">
+                <h2 style="color: var(--alert);">FATAL SYSTEM CRASH</h2>
+                <p id="gameover-reason">Trace complete. Your connection was severed.</p>
+                <div class="overclock-actions">
+                    <button id="btn-revive-ad" onclick="window.reviveWithAd()">
+                        EMERGENCY REBOOT (WATCH AD FOR 50% HP)
+                    </button>
+                    <button onclick="location.reload()" style="background: black; color: var(--phosphor); border: 1px solid var(--phosphor);">
+                        ABANDON RUN &amp; REBOOT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAILY RESULT / SHARE MODAL -->
+        <div id="modal-share" class="modal-backdrop">
+            <div class="modal-box">
+                <h2 id="share-modal-title" style="color: var(--phosphor);">ROOT ACCESS GRANTED</h2>
+                <p id="share-modal-sub">OMNI_MIND bypassed. Daily run recorded!</p>
+                <textarea id="share-text-area" readonly rows="7"></textarea>
+                <div class="overclock-actions">
+                    <button id="btn-copy-share" onclick="window.copyShareResult()">
+                        📋 COPY RESULT TO CLIPBOARD
+                    </button>
+                    <button onclick="location.reload()" style="background: black; color: var(--phosphor); border: 1px solid var(--phosphor);">
+                        PLAY PRACTICE RUN
+                    </button>
+                </div>
+                <div id="share-toast" style="display: none;">COPIED TO CLIPBOARD!</div>
+            </div>
+        </div>
+
+        <!-- STATS MODAL -->
+        <div id="modal-stats" class="modal-backdrop">
+            <div class="modal-box">
+                <h2>HACKER PERFORMANCE METRICS</h2>
+                <div class="stats-grid">
+                    <div class="stat-item"><span class="stat-num" id="stat-played">0</span><span class="stat-lbl">Runs</span></div>
+                    <div class="stat-item"><span class="stat-num" id="stat-winrate">0%</span><span class="stat-lbl">Win %</span></div>
+                    <div class="stat-item"><span class="stat-num" id="stat-streak">0</span><span class="stat-lbl">Streak</span></div>
+                    <div class="stat-item"><span class="stat-num" id="stat-maxstreak">0</span><span class="stat-lbl">Max Streak</span></div>
+                </div>
+                <button onclick="window.closeStatsModal()" style="margin-top: 20px; width: 100%;">CLOSE TERMINAL</button>
+            </div>
         </div>
     </div>
 
-    <!-- Links to your new JavaScript file -->
     <script src="app.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration skipped:', err));
+            });
+        }
+    </script>
 </body>
 </html>
