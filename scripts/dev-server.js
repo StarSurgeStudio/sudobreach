@@ -1,6 +1,10 @@
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Manually parse .env as fallback if not launched with --env-file
 function loadEnvFallback() {
@@ -244,15 +248,14 @@ const server = http.createServer((req, res) => {
     res.end('405 Method Not Allowed');
 });
 
-if (require.main === module) {
-    server.listen(PORT, () => {
-        console.log(`=================================================`);
-        console.log(` SUDO_BREACH Mobile Server Running               `);
-        console.log(` URL:    http://localhost:${PORT}                `);
-        console.log(` Models: ${GEMINI_MODELS.join(', ')}             `);
-        console.log(` Key:    ${GEMINI_API_KEY ? 'Configured (hidden)' : 'MISSING'}`);
-        console.log(`=================================================`);
-    });
-}
+server.listen(PORT, () => {
+    console.log(`=================================================`);
+    console.log(` SUDO_BREACH Mobile Server Running               `);
+    console.log(` URL:    http://localhost:${PORT}                `);
+    console.log(` Models: ${GEMINI_MODELS.join(', ')}             `);
+    console.log(` Key:    ${GEMINI_API_KEY ? 'Configured (hidden)' : 'MISSING'}`);
+    console.log(`=================================================`);
+});
 
-module.exports = server;
+export default server;
+
