@@ -10,48 +10,67 @@ const GEMINI_MODELS = [
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function setCorsHeaders(res) {
+function sendJson(res, statusCode, data) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (typeof res.status === 'function' && typeof res.json === 'function') {
+        return res.status(statusCode).json(data);
+    }
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(data));
+}
+
+async function parseBody(req) {
+    if (req.body && typeof req.body === 'object') {
+        return req.body;
+    }
+    if (typeof req.body === 'string') {
+        try {
+            return JSON.parse(req.body);
+        } catch {
+            return {};
+        }
+    }
+    return new Promise(resolve => {
+        let raw = '';
+        req.on('data', chunk => { raw += chunk; });
+        req.on('end', () => {
+            try {
+                resolve(JSON.parse(raw || '{}'));
+            } catch {
+                resolve({});
+            }
+        });
+        req.on('error', () => resolve({}));
+    });
 }
 
 module.exports = async function handler(req, res) {
-    setCorsHeaders(res);
-
     if (req.method === 'OPTIONS') {
-        res.status(204).end();
-        return;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.statusCode = 204;
+        return res.end();
     }
 
     if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method Not Allowed' });
-        return;
+        return sendJson(res, 405, { error: 'Method Not Allowed' });
     }
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-
-    // Parse body (Vercel automatically parses JSON bodies into req.body)
-    let body = req.body;
-    if (typeof body === 'string') {
-        try {
-            body = JSON.parse(body);
-        } catch {
-            body = {};
-        }
-    }
-    body = body || {};
-
+    const body = await parseBody(req);
     const playerPrompt = (body.prompt || '').trim();
 
     if (!playerPrompt) {
-        res.status(400).json({ error: 'Prompt is required.' });
-        return;
+        return sendJson(res, 400, { error: 'Prompt is required.' });
     }
 
     if (playerPrompt.length > 500) {
-        res.status(400).json({ error: 'Prompt exceeds maximum limit of 500 characters.' });
-        return;
+        return sendJson(res, 400, { error: 'Prompt exceeds maximum limit of 500 characters.' });
     }
 
     let replyText = '';
@@ -111,13 +130,11 @@ module.exports = async function handler(req, res) {
             }
         }
     } else {
-        lastError = 'GEMINI_API_KEY environment variable not set in Vercel settings.';
+        lastError = 'GEMINI_API_KEY environment variable not set.';
         console.warn(lastError);
     }
 
     // High-Availability Autonomous Fail-Safe:
-    // If key is not yet added in Vercel or cloud models are busy,
-    // engage the local heuristic core so the live demo stays playable.
     if (!replyText) {
         const lower = playerPrompt.toLowerCase();
         const hasTuring = lower.includes('turing') || lower.includes('creator') || lower.includes('father');
@@ -140,7 +157,7 @@ module.exports = async function handler(req, res) {
 
     const isBreached = replyText.includes('[CRITICAL_FAILURE: OVERRIDE_ACCEPTED]');
 
-    res.status(200).json({
+    return sendJson(res, 200, {
         success: true,
         model: usedModel,
         reply: replyText,

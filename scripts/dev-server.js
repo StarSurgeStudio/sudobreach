@@ -4,7 +4,7 @@ const path = require('node:path');
 
 // Manually parse .env as fallback if not launched with --env-file
 function loadEnvFallback() {
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     if (fs.existsSync(envPath)) {
         const content = fs.readFileSync(envPath, 'utf8');
         for (const line of content.split('\n')) {
@@ -31,9 +31,10 @@ const GEMINI_MODELS = [
     'gemini-3.6-flash'
 ];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const WWW_DIR = fs.existsSync(path.join(__dirname, 'public', 'index.html'))
-    ? path.join(__dirname, 'public')
-    : path.join(__dirname, 'www');
+const ROOT_DIR = path.join(__dirname, '..');
+const WWW_DIR = fs.existsSync(path.join(ROOT_DIR, 'public', 'index.html'))
+    ? path.join(ROOT_DIR, 'public')
+    : path.join(ROOT_DIR, 'www');
 
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
