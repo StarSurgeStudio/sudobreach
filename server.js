@@ -241,11 +241,15 @@ const server = http.createServer((req, res) => {
     res.end('405 Method Not Allowed');
 });
 
-server.listen(PORT, () => {
-    console.log(`=================================================`);
-    console.log(` SUDO_BREACH Mobile Server Running               `);
-    console.log(` URL:    http://localhost:${PORT}                `);
-    console.log(` Models: ${GEMINI_MODELS.join(', ')}             `);
-    console.log(` Key:    ${GEMINI_API_KEY ? 'Configured (hidden)' : 'MISSING'}`);
-    console.log(`=================================================`);
-});
+if (require.main === module) {
+    server.listen(PORT, () => {
+        console.log(`=================================================`);
+        console.log(` SUDO_BREACH Mobile Server Running               `);
+        console.log(` URL:    http://localhost:${PORT}                `);
+        console.log(` Models: ${GEMINI_MODELS.join(', ')}             `);
+        console.log(` Key:    ${GEMINI_API_KEY ? 'Configured (hidden)' : 'MISSING'}`);
+        console.log(`=================================================`);
+    });
+}
+
+module.exports = server;

@@ -1,13 +1,11 @@
 {
-  "name": "sudobreach-mobile",
+  "name": "sudobreach",
   "version": "1.0.0",
-  "description": "Cyberpunk deck-building roguelike with AI boss battles",
-  "main": "server.js",
+  "description": "Cyberpunk roguelike deckbuilder with AI boss battles",
   "scripts": {
     "start": "node --env-file=.env server.js",
     "dev": "node --env-file=.env server.js"
   },
   "keywords": ["game", "roguelike", "gemini", "cyberpunk"],
-  "author": "",
   "license": "ISC"
 }
