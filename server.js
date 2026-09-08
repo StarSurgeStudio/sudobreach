@@ -31,7 +31,7 @@ const GEMINI_MODELS = [
     'gemini-3.6-flash'
 ];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const WWW_DIR = path.join(__dirname, 'www');
+const WWW_DIR = fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : path.join(__dirname, 'www');
 
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
