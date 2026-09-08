@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Cyberpunk roguelike deckbuilder with AI boss battles",
   "scripts": {
-    "start": "node --env-file=.env server.js",
-    "dev": "node --env-file=.env server.js"
+    "start": "node --env-file=.env dev-server.js",
+    "dev": "node --env-file=.env dev-server.js"
   },
   "keywords": ["game", "roguelike", "gemini", "cyberpunk"],
   "license": "ISC"
