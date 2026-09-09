@@ -116,24 +116,24 @@ let adReviveUsed = false;
 const lootPool = [
     { name: "[BUFFER_OVERFLOW]", type: "chips", chips: 120, mult: 1, shield: 0, desc: "+120 DMG" },
     { name: "[MULTI_THREAD]", type: "mult", chips: 15, mult: 3, shield: 0, desc: "+15 DMG | x3 MULT" },
-    { name: "[FIREWALL_HARDEN]", type: "shield", chips: 0, mult: 1, shield: 45, desc: "+45 SHIELD DEFENSE" },
-    { name: "[ZERO_DAY]", type: "exploit", chips: 60, mult: 2, shield: 15, desc: "+60 DMG | x2 MULT | +15 SHIELD" },
+    { name: "[FIREWALL_HARDEN]", type: "shield", chips: 30, mult: 1, shield: 50, desc: "+30 DMG | +50 SHIELD" },
+    { name: "[ZERO_DAY]", type: "exploit", chips: 60, mult: 2, shield: 20, desc: "+60 DMG | x2 MULT | +20 SHIELD" },
     { name: "[SQL_INJECT]", type: "chips", chips: 200, mult: 1, shield: 0, desc: "+200 DMG PAYLOAD" },
-    { name: "[ROOT_PRIVILEGE]", type: "mult", chips: 0, mult: 5, shield: 0, desc: "x5 MULTIPLIER" },
+    { name: "[ROOT_PRIVILEGE]", type: "mult", chips: 10, mult: 4, shield: 0, desc: "+10 DMG | x4 MULT" },
     { name: "[DAEMON_CACHE]", type: "exploit", chips: 80, mult: 2, shield: 0, desc: "+80 DMG | x2 MULT" },
-    { name: "[VPN_ENCRYPT]", type: "shield", chips: 30, mult: 1, shield: 35, desc: "+30 DMG | +35 SHIELD" }
+    { name: "[VPN_ENCRYPT]", type: "shield", chips: 35, mult: 1, shield: 40, desc: "+35 DMG | +40 SHIELD" }
 ];
 
 const enemyTemplates = [
-    { name: "[TARGET: BASIC_GATEWAY]", hp: 150, intent: 12, desc: "Entry level perimeter node." },
-    { name: "[TARGET: CRYPTO_WALL]", hp: 420, intent: 18, desc: "Encrypted memory block. High retaliation." },
-    { name: "[TARGET: BLACK_ICE]", hp: 1250, intent: 25, desc: "Lethal defense daemon. Retaliation kills quickly." },
-    { name: "[TARGET: WARDEN_KERNEL]", hp: 3800, intent: 35, desc: "Elite mainframe sentry. Bruteforce heavily penalized." },
+    { name: "[TARGET: BASIC_GATEWAY]", hp: 200, intent: 10, desc: "Entry level perimeter node." },
+    { name: "[TARGET: CRYPTO_WALL]", hp: 480, intent: 15, desc: "Encrypted memory block. Moderate retaliation." },
+    { name: "[TARGET: BLACK_ICE]", hp: 1050, intent: 22, desc: "Lethal defense daemon. Retaliation hits hard." },
+    { name: "[TARGET: WARDEN_KERNEL]", hp: 2100, intent: 28, desc: "Elite mainframe sentry. Requires high synergy." },
     { name: "[TARGET: OMNI_MIND_LLM]", hp: 999999, intent: 0, desc: "SENTIENT AI CORE. PREPARE INJECTION OVERRIDE." }
 ];
 
 const anomalyTypes = [
-    { id: 'firewall', title: '⚠️ ACTIVE FIREWALL', desc: 'Enemy node reflects 10% damage back to your system.', effect: 'reflect' },
+    { id: 'firewall', title: '⚠️ ACTIVE FIREWALL', desc: 'High voltage grid zaps for 12 retaliation damage per cycle.', effect: 'grid_zap' },
     { id: 'bandwidth', title: '⚠️ LOW BANDWIDTH', desc: 'Congested bus. Syntax buffer limited to 2 cards.', effect: 'limit_2' },
     { id: 'corrupt', title: '⚠️ CORRUPT CACHE', desc: 'Data corruption scrambles 1 module stat per cycle.', effect: 'scramble' }
 ];
@@ -159,7 +159,7 @@ function initStarterDeck() {
     const starterCards = [
         { name: "[INJECT]", type: "chips", chips: 50, mult: 1, shield: 0, desc: "+50 DMG" },
         { name: "[OVERRIDE]", type: "mult", chips: 10, mult: 2, shield: 0, desc: "+10 DMG | x2 MULT" },
-        { name: "[FIREWALL]", type: "shield", chips: 0, mult: 1, shield: 30, desc: "+30 SHIELD" },
+        { name: "[FIREWALL]", type: "shield", chips: 20, mult: 1, shield: 35, desc: "+20 DMG | +35 SHIELD" },
         { name: "[CYCLE_BURST]", type: "exploit", chips: 40, mult: 2, shield: 0, desc: "+40 DMG | x2 MULT" }
     ];
 
@@ -285,16 +285,34 @@ function updateBufferUI() {
     let chips = 0;
     let mult = 1;
     let shield = 0;
+    const typesPresent = new Set();
+
     cards.forEach(c => {
         chips += parseInt(c.getAttribute('data-chips')) || 0;
         mult *= Math.max(1, parseInt(c.getAttribute('data-mult')) || 1);
         shield += parseInt(c.getAttribute('data-shield')) || 0;
+        const t = c.getAttribute('data-type');
+        if (t) typesPresent.add(t);
     });
 
-    const previewDmg = chips * mult;
+    // Check Full Syntax Synergy Bonus (3 distinct archetypes in buffer)
+    const hasSynergy = cards.length >= 3 && typesPresent.size >= 3;
+    const bonusChips = hasSynergy ? 50 : 0;
+    const bonusMult = hasSynergy ? 1 : 0;
+
+    const finalChips = chips + bonusChips;
+    const finalMult = mult + bonusMult;
+    const previewDmg = finalChips * finalMult;
+
     const btn = document.getElementById('btn-execute');
     if (currentFloor < 5) {
-        btn.innerText = cards.length > 0 ? `EXECUTE SYNTAX [DMG: ${previewDmg.toLocaleString()}]` : 'EXECUTE SYNTAX';
+        if (cards.length > 0) {
+            btn.innerText = hasSynergy
+                ? `EXECUTE SYNTAX [DMG: ${previewDmg.toLocaleString()} ⚡ SYNERGY!]`
+                : `EXECUTE SYNTAX [DMG: ${previewDmg.toLocaleString()}]`;
+        } else {
+            btn.innerText = 'EXECUTE SYNTAX';
+        }
     }
 
     // Update live syntax math preview bar
@@ -309,18 +327,22 @@ function updateBufferUI() {
         if (previewBar) previewBar.style.display = 'none';
     } else {
         if (previewBar) previewBar.style.display = 'flex';
-        if (pChips) pChips.innerText = `💥 ${chips} CHIPS`;
-        if (pMult) pMult.innerText = `✖️ ${mult}x MULT`;
+        if (pChips) pChips.innerText = hasSynergy ? `💥 ${finalChips} (${chips}+50)` : `💥 ${chips} CHIPS`;
+        if (pMult) pMult.innerText = hasSynergy ? `✖️ ${finalMult}x (${mult}+1x)` : `✖️ ${mult}x MULT`;
         if (pDmg) pDmg.innerText = `⚡ ${previewDmg.toLocaleString()} DMG`;
         if (pShield) pShield.innerText = `🛡️ +${shield} SHIELD`;
 
         if (pDelta) {
             if (shield >= enemyIntentDamage && enemyIntentDamage > 0) {
-                pDelta.innerText = `vs ⚡ ${enemyIntentDamage} Intent [BLOCKED ✓]`;
+                const counterEst = Math.max(1, Math.floor(enemyIntentDamage * 0.5));
+                pDelta.innerText = `vs ⚡ ${enemyIntentDamage} Intent [BLOCKED! +${counterEst} COUNTER]`;
                 pDelta.style.color = 'var(--phosphor)';
             } else if (enemyIntentDamage > 0) {
                 const net = enemyIntentDamage - shield;
-                pDelta.innerText = `vs ⚡ ${enemyIntentDamage} Intent (-${net} HP)`;
+                const counterEst = shield > 0 ? Math.max(1, Math.floor(shield * 0.5)) : 0;
+                pDelta.innerText = counterEst > 0
+                    ? `vs ⚡ ${enemyIntentDamage} Intent (-${net} HP | +${counterEst} Counter)`
+                    : `vs ⚡ ${enemyIntentDamage} Intent (-${net} HP)`;
                 pDelta.style.color = 'var(--alert)';
             } else {
                 pDelta.innerText = `vs ⚡ 0 Intent`;
@@ -340,12 +362,23 @@ window.executeCommand = function() {
     let totalChips = 0;
     let currentMult = 1;
     let addedShield = 0;
+    const typesPresent = new Set();
 
     cards.forEach(card => {
         totalChips += parseInt(card.getAttribute('data-chips')) || 0;
         currentMult *= Math.max(1, parseInt(card.getAttribute('data-mult')) || 1);
         addedShield += parseInt(card.getAttribute('data-shield')) || 0;
+        const t = card.getAttribute('data-type');
+        if (t) typesPresent.add(t);
     });
+
+    // Check Full Syntax Synergy Bonus (3 distinct archetypes)
+    const hasSynergy = cards.length >= 3 && typesPresent.size >= 3;
+    if (hasSynergy) {
+        totalChips += 50;
+        currentMult += 1;
+        window.playTone(980, 'triangle', 0.18, 0.12);
+    }
 
     // Apply shield
     if (addedShield > 0) {
@@ -358,7 +391,7 @@ window.executeCommand = function() {
 
     window.sfxHit(currentMult);
     window.shakeScreen();
-    showDamagePopup(dmg);
+    showDamagePopup(hasSynergy ? `+${dmg.toLocaleString()} DMG (SYNERGY!)` : `+${dmg.toLocaleString()} DMG!`);
     window.applyDamage(dmg);
 
     // Recall played cards
@@ -368,10 +401,9 @@ window.executeCommand = function() {
 window.applyDamage = function(dmg) {
     enemyHP -= dmg;
 
-    // Handle Active Firewall Reflection Anomaly
-    if (activeAnomaly && activeAnomaly.effect === 'reflect' && dmg > 0) {
-        const reflected = Math.max(1, Math.round(dmg * 0.10));
-        applyPlayerDamage(reflected, "FIREWALL REFLECTION");
+    // Handle Active Firewall Anomaly (Grid Zap)
+    if (activeAnomaly && activeAnomaly.effect === 'grid_zap' && dmg > 0) {
+        applyPlayerDamage(12, "GRID VOLTAGE ZAP");
     }
 
     if (enemyHP <= 0) {
@@ -410,13 +442,40 @@ function enemyRetaliate() {
 
 function applyPlayerDamage(amount, source) {
     let remaining = amount;
+    let blocked = 0;
     if (playerShield > 0) {
         if (playerShield >= remaining) {
+            blocked = remaining;
             playerShield -= remaining;
             remaining = 0;
         } else {
+            blocked = playerShield;
             remaining -= playerShield;
             playerShield = 0;
+        }
+    }
+
+    // Counter-Strike Thorns: 50% of blocked damage reflected back to enemy node
+    if (blocked > 0 && enemyHP > 0 && currentFloor < 5) {
+        const counterDmg = Math.max(1, Math.floor(blocked * 0.5));
+        enemyHP = Math.max(0, enemyHP - counterDmg);
+        showDamagePopup(`⚡ ${counterDmg} COUNTER!`);
+        window.updateHPBar();
+        window.shakeScreen();
+
+        if (enemyHP <= 0) {
+            enemyHP = 0;
+            window.sfxCrash();
+            floorsClearedGrid.push('🟩');
+            document.getElementById('enemy-box').classList.add('glitch');
+
+            if (navigator.vibrate) navigator.vibrate([100, 50, 150]);
+
+            setTimeout(() => {
+                document.getElementById('enemy-box').classList.remove('glitch');
+                currentFloor < 5 ? window.showLoot() : window.showVictory();
+            }, 800);
+            return;
         }
     }
 
@@ -582,6 +641,18 @@ window.claimLoot = function(item) {
     const newId = `card${++cardCounter}`;
     deck.appendChild(createCardElement(newId, item.name, item.type, item.chips, item.mult, item.shield, item.desc));
     document.getElementById('overlay').style.display = 'none';
+
+    // System Integrity Repair: Patch +25 HP between floors
+    const healAmount = 25;
+    const oldHP = playerHP;
+    playerHP = Math.min(playerMaxHP, playerHP + healAmount);
+    const actualHealed = playerHP - oldHP;
+    updatePlayerHUD();
+
+    if (actualHealed > 0) {
+        showDamagePopup(`+${actualHealed} HP REPAIRED`);
+    }
+
     window.loadFloor(currentFloor + 1);
 };
 
