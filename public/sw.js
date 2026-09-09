@@ -3,7 +3,7 @@ const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
-  '/app.js',
+  '/game.js',
   '/manifest.json'
 ];
 

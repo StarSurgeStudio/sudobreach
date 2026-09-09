@@ -73,13 +73,18 @@ sudobreach_mobile/
 ├── .env.example        # Environment variable template
 ├── .gitignore          # Excludes secret credentials and local configs
 ├── package.json        # Project metadata and run scripts
-├── server.js           # Local Node proxy and static file server
-├── vercel.json         # Vercel routing and serverless rewrites
-├── www/                # Client-side web & mobile app bundle
+├── vercel.json         # Vercel deployment configuration
+├── public/             # Client-side web & mobile app bundle
 │   ├── index.html      # Main game interface
 │   ├── style.css       # CRT phosphor green styling and animations
-│   └── app.js          # Core roguelike game loop & API integration
-└── README.md
+│   ├── game.js         # Core roguelike game loop & API integration
+│   ├── manifest.json   # Progressive Web App manifest
+│   └── sw.js           # Offline service worker cache
+├── api/                # Vercel serverless functions
+│   ├── health.js       # Health check & model availability
+│   └── boss-prompt.js  # Server-side Gemini API AI Boss proxy
+└── scripts/
+    └── dev-server.js   # Local development server (npm start)
 ```
 
 ---

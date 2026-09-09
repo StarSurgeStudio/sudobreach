@@ -2,8 +2,13 @@
 // SUDO_BREACH: ROGUELIKE DECKBUILDER & AI BOSS ENGINE
 // =========================================================================
 
+if (typeof window === 'undefined') {
+    globalThis.window = globalThis;
+}
+
 // --- BACKEND PROXY ENDPOINT ---
-const BOSS_API_ENDPOINT = window.BOSS_API_URL || "/api/boss-prompt";
+const BOSS_API_ENDPOINT = (typeof window !== 'undefined' && window.BOSS_API_URL) || "/api/boss-prompt";
+
 
 // --- AUDIO SYNTHESIZER ENGINE (Web Audio API) ---
 let audioCtx = null;
