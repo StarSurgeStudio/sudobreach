@@ -88,7 +88,7 @@ button {
     text-transform: uppercase;
 }
 
-#btn-stats, #btn-audio {
+#btn-stats, #btn-audio, #btn-help {
     padding: 3px 7px;
     font-size: 0.85rem;
     border-radius: 2px;
@@ -500,4 +500,315 @@ button {
     60% { transform: translate(2px, 2px); }
     80% { transform: translate(2px, -2px); }
     100% { transform: translate(0); }
+}
+
+/* HELP BUTTON SPECIFIC */
+#btn-help {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+#btn-help:hover {
+    background: rgba(0, 229, 255, 0.2);
+}
+
+/* FLOOR ROADMAP PROGRESSION */
+#floor-roadmap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    background: rgba(10, 10, 10, 0.9);
+    border: 1px solid #222;
+    font-size: 0.68rem;
+    font-weight: bold;
+    overflow-x: auto;
+}
+
+.roadmap-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3px 6px;
+    border: 1px solid #333;
+    background: #080808;
+    color: #666;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.roadmap-step .step-num {
+    font-size: 0.65rem;
+    opacity: 0.8;
+}
+
+.roadmap-step .step-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.5px;
+}
+
+.roadmap-arrow {
+    color: #444;
+    font-size: 0.65rem;
+    user-select: none;
+    padding: 0 1px;
+}
+
+.roadmap-step.active {
+    border-color: var(--phosphor);
+    color: var(--phosphor);
+    background: rgba(0, 255, 65, 0.08);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+    animation: pulse-step 1.5s infinite alternate;
+}
+
+.roadmap-step.completed {
+    border-color: #2e7d32;
+    color: #81c784;
+    background: rgba(46, 125, 50, 0.15);
+}
+
+.roadmap-step.boss-step {
+    border-color: #552222;
+    color: #aa4444;
+}
+
+.roadmap-step.boss-step.active {
+    border-color: var(--alert);
+    color: var(--alert);
+    background: rgba(255, 0, 60, 0.15);
+    box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+    animation: pulse-boss 1s infinite alternate;
+}
+
+@keyframes pulse-step {
+    from { border-color: var(--phosphor); }
+    to { border-color: #ffffff; }
+}
+
+@keyframes pulse-boss {
+    from { border-color: var(--alert); box-shadow: 0 0 5px var(--alert); }
+    to { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); }
+}
+
+/* LIVE SYNTAX MATH PREVIEW BAR */
+#syntax-preview-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: #090909;
+    border: 1px solid #282828;
+    border-left: 3px solid var(--phosphor);
+    font-size: 0.75rem;
+}
+
+.syntax-math-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.syntax-defense-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+}
+
+.preview-label {
+    font-weight: bold;
+    color: #777;
+    font-size: 0.68rem;
+    letter-spacing: 0.5px;
+}
+
+.math-operator, .math-op {
+    color: #888;
+    font-weight: bold;
+}
+
+.preview-pill {
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.pill-chips {
+    background: rgba(0, 229, 255, 0.12);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+}
+
+.pill-mult {
+    background: rgba(213, 0, 249, 0.12);
+    border: 1px solid var(--purple);
+    color: var(--purple);
+}
+
+.pill-dmg {
+    background: rgba(255, 214, 0, 0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    box-shadow: 0 0 6px rgba(255, 214, 0, 0.2);
+}
+
+.pill-shield {
+    background: rgba(41, 121, 255, 0.12);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+}
+
+.defense-delta {
+    color: var(--alert);
+    font-weight: bold;
+}
+
+/* CARD MICRO-BADGES */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.card-title {
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.card-archetype-badge {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.badge-chips {
+    background: rgba(0, 229, 255, 0.2);
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+}
+
+.badge-mult {
+    background: rgba(213, 0, 249, 0.2);
+    color: var(--purple);
+    border: 1px solid var(--purple);
+}
+
+.badge-shield {
+    background: rgba(41, 121, 255, 0.2);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+}
+
+.badge-exploit {
+    background: rgba(255, 214, 0, 0.2);
+    color: var(--gold);
+    border: 1px solid var(--gold);
+}
+
+/* MISSION BRIEFING MODAL */
+.briefing-box {
+    max-width: 460px;
+    text-align: left;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+    padding: 18px 20px;
+}
+
+.briefing-header {
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.briefing-tag {
+    color: var(--cyan);
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: block;
+}
+
+.briefing-header h2 {
+    font-size: 1.15rem;
+    margin: 4px 0 0 0;
+    color: #fff;
+    text-shadow: 0 0 8px var(--cyan);
+}
+
+.briefing-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #ccc;
+}
+
+.briefing-section {
+    background: #0d0d0d;
+    border: 1px solid #222;
+    padding: 8px 10px;
+    border-radius: 2px;
+}
+
+.briefing-step-title {
+    color: var(--phosphor);
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 0.82rem;
+}
+
+.briefing-section p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.briefing-math-example {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    background: #050505;
+    padding: 6px;
+    border: 1px dashed #444;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.briefing-footer {
+    margin-top: 16px;
+}
+
+#btn-close-briefing {
+    width: 100%;
+    padding: 12px;
+    background: var(--cyan);
+    color: #000;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+
+#btn-close-briefing:hover {
+    background: #fff;
 }

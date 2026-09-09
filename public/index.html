@@ -21,10 +21,39 @@
             </div>
             <div class="hud-right">
                 <span id="floor-display">FLOOR: 1/5</span>
+                <button id="btn-help" onclick="window.showHelpModal()" title="Mission Briefing & How to Play">❓</button>
                 <button id="btn-stats" onclick="window.showStatsModal()" title="View Hacker Stats">📊</button>
                 <button id="btn-audio" onclick="window.toggleAudio()" title="Toggle Sound">🔊</button>
             </div>
         </header>
+
+        <!-- FLOOR ROADMAP PROGRESSION -->
+        <nav id="floor-roadmap" aria-label="Floor Progression">
+            <div class="roadmap-step active" data-step="1">
+                <span class="step-num">1</span>
+                <span class="step-label">GATEWAY</span>
+            </div>
+            <div class="roadmap-arrow">➔</div>
+            <div class="roadmap-step" data-step="2">
+                <span class="step-num">2</span>
+                <span class="step-label">CRYPTO</span>
+            </div>
+            <div class="roadmap-arrow">➔</div>
+            <div class="roadmap-step" data-step="3">
+                <span class="step-num">3</span>
+                <span class="step-label">ICE</span>
+            </div>
+            <div class="roadmap-arrow">➔</div>
+            <div class="roadmap-step" data-step="4">
+                <span class="step-num">4</span>
+                <span class="step-label">WARDEN</span>
+            </div>
+            <div class="roadmap-arrow">➔</div>
+            <div class="roadmap-step boss-step" data-step="5">
+                <span class="step-num">🤖 5</span>
+                <span class="step-label">AI_BOSS</span>
+            </div>
+        </nav>
 
         <!-- PLAYER INTEGRITY (HP) & SHIELD -->
         <section id="player-hud">
@@ -72,6 +101,22 @@
             <button id="btn-recall" onclick="window.recallAllCards()" title="Recall all cards to deck">RECALL ALL</button>
         </div>
         <div id="deck"></div>
+
+        <!-- LIVE SYNTAX MATH PREVIEW BAR -->
+        <div id="syntax-preview-bar">
+            <div class="syntax-math-group">
+                <span class="preview-label">SYNTAX MATH:</span>
+                <span class="preview-pill pill-chips" id="preview-chips">💥 0 CHIPS</span>
+                <span class="math-operator">×</span>
+                <span class="preview-pill pill-mult" id="preview-mult">✖️ 1x MULT</span>
+                <span class="math-operator">=</span>
+                <span class="preview-pill pill-dmg" id="preview-dmg">⚡ 0 DMG</span>
+            </div>
+            <div class="syntax-defense-group">
+                <span class="preview-pill pill-shield" id="preview-shield">🛡️ +0 SHIELD</span>
+                <span class="defense-delta" id="preview-delta">vs ⚡ 12 INTENT</span>
+            </div>
+        </div>
 
         <!-- ACTION CONTROLS -->
         <div id="action-controls">
@@ -160,6 +205,49 @@
                     <div class="stat-item"><span class="stat-num" id="stat-maxstreak">0</span><span class="stat-lbl">Max Streak</span></div>
                 </div>
                 <button onclick="window.closeStatsModal()" style="margin-top: 20px; width: 100%;">CLOSE TERMINAL</button>
+            </div>
+        </div>
+
+        <!-- MISSION BRIEFING & HOW TO PLAY MODAL -->
+        <div id="modal-help" class="modal-backdrop">
+            <div class="modal-box briefing-box">
+                <div class="briefing-header">
+                    <span class="briefing-tag">[NETRUNNER OPERATIONAL DOSSIER]</span>
+                    <h2>MISSION BRIEFING: HOW TO PLAY</h2>
+                </div>
+                
+                <div class="briefing-body">
+                    <div class="briefing-section">
+                        <div class="briefing-step-title">🎯 1. THE MISSION</div>
+                        <p>Infiltrate <strong>5 corporate mainframe floors</strong> to breach <strong style="color:var(--alert);">OMNI_MIND</strong>, an active neural AI protecting root credentials.</p>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="briefing-step-title">⚡ 2. SYNTAX ARITHMETIC (COMBAT)</div>
+                        <p>Tap cards to load up to <strong>3 modules</strong> into your execution buffer. Damage multiplies Balatro-style:</p>
+                        <div class="briefing-math-example">
+                            <span class="preview-pill pill-chips">💥 50 CHIPS</span>
+                            <span class="math-op">×</span>
+                            <span class="preview-pill pill-mult">✖️ 2 MULT</span>
+                            <span class="math-op">=</span>
+                            <span class="preview-pill pill-dmg">⚡ 100 DMG</span>
+                        </div>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="briefing-step-title">🛡️ 3. DEFENSE & RETALIATION</div>
+                        <p>Enemies retaliate every cycle! Slot <span class="preview-pill pill-shield">🛡️ SHIELD</span> modules into your syntax buffer to block retaliation damage and protect your system integrity.</p>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="briefing-step-title">🤖 4. FLOOR 5: REAL-TIME AI BOSS</div>
+                        <p>On Floor 5, cards are replaced with a direct neural terminal. Type custom prompt injections (cryptographic paradoxes, persona exploits, or logic traps) to breach OMNI_MIND and win the daily run!</p>
+                    </div>
+                </div>
+
+                <div class="briefing-footer">
+                    <button id="btn-close-briefing" onclick="window.closeHelpModal()">I UNDERSTAND — INITIATE HACK</button>
+                </div>
             </div>
         </div>
     </div>

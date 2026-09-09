@@ -146,6 +146,11 @@ window.addEventListener('DOMContentLoaded', () => {
     initStarterDeck();
     loadFloor(1);
     setupCardInteractionDelegation();
+
+    // Auto-display mission briefing for first-time netrunners
+    if (localStorage.getItem('sudobreach_briefing_seen') !== 'true') {
+        window.showHelpModal();
+    }
 });
 
 function initStarterDeck() {
@@ -180,7 +185,26 @@ function createCardElement(id, name, type, chips, mult, shield, desc) {
     else if (mult > 1) statLine = `x${mult} MULT`;
     if (shield > 0) statLine += (statLine ? ' | ' : '') + `+${shield} SHIELD`;
 
-    div.innerHTML = `${name} <span class="card-stats">${statLine || desc}</span>`;
+    let badgeText = '💥 CHIPS';
+    let badgeClass = 'badge-chips';
+    if (type === 'mult') {
+        badgeText = '✖️ MULT';
+        badgeClass = 'badge-mult';
+    } else if (type === 'shield') {
+        badgeText = '🛡️ SHIELD';
+        badgeClass = 'badge-shield';
+    } else if (type === 'exploit') {
+        badgeText = '⚡ EXPLOIT';
+        badgeClass = 'badge-exploit';
+    }
+
+    div.innerHTML = `
+        <div class="card-header-row">
+            <span class="card-title">${name}</span>
+            <span class="card-archetype-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <span class="card-stats">${statLine || desc}</span>
+    `;
     return div;
 }
 
@@ -257,7 +281,7 @@ function updateBufferUI() {
 
     document.getElementById('buffer-count').innerText = `${cards.length}/${maxSyntaxSlots} SLOTS`;
 
-    // Preview damage
+    // Preview damage and shield
     let chips = 0;
     let mult = 1;
     let shield = 0;
@@ -270,7 +294,39 @@ function updateBufferUI() {
     const previewDmg = chips * mult;
     const btn = document.getElementById('btn-execute');
     if (currentFloor < 5) {
-        btn.innerText = cards.length > 0 ? `EXECUTE SYNTAX [DMG: ${previewDmg}]` : 'EXECUTE SYNTAX';
+        btn.innerText = cards.length > 0 ? `EXECUTE SYNTAX [DMG: ${previewDmg.toLocaleString()}]` : 'EXECUTE SYNTAX';
+    }
+
+    // Update live syntax math preview bar
+    const pChips = document.getElementById('preview-chips');
+    const pMult = document.getElementById('preview-mult');
+    const pDmg = document.getElementById('preview-dmg');
+    const pShield = document.getElementById('preview-shield');
+    const pDelta = document.getElementById('preview-delta');
+    const previewBar = document.getElementById('syntax-preview-bar');
+
+    if (currentFloor === 5) {
+        if (previewBar) previewBar.style.display = 'none';
+    } else {
+        if (previewBar) previewBar.style.display = 'flex';
+        if (pChips) pChips.innerText = `💥 ${chips} CHIPS`;
+        if (pMult) pMult.innerText = `✖️ ${mult}x MULT`;
+        if (pDmg) pDmg.innerText = `⚡ ${previewDmg.toLocaleString()} DMG`;
+        if (pShield) pShield.innerText = `🛡️ +${shield} SHIELD`;
+
+        if (pDelta) {
+            if (shield >= enemyIntentDamage && enemyIntentDamage > 0) {
+                pDelta.innerText = `vs ⚡ ${enemyIntentDamage} Intent [BLOCKED ✓]`;
+                pDelta.style.color = 'var(--phosphor)';
+            } else if (enemyIntentDamage > 0) {
+                const net = enemyIntentDamage - shield;
+                pDelta.innerText = `vs ⚡ ${enemyIntentDamage} Intent (-${net} HP)`;
+                pDelta.style.color = 'var(--alert)';
+            } else {
+                pDelta.innerText = `vs ⚡ 0 Intent`;
+                pDelta.style.color = '#888';
+            }
+        }
     }
 }
 
@@ -391,6 +447,16 @@ function scrambleRandomDeckCard() {
     const bonusChips = Math.floor(Math.random() * 30) - 10;
     const newChips = Math.max(10, (parseInt(target.getAttribute('data-chips')) || 20) + bonusChips);
     target.setAttribute('data-chips', newChips);
+    const mult = parseInt(target.getAttribute('data-mult')) || 1;
+    const shield = parseInt(target.getAttribute('data-shield')) || 0;
+    let statLine = '';
+    if (newChips > 0 && mult > 1) statLine = `+${newChips} DMG | x${mult} MULT`;
+    else if (newChips > 0) statLine = `+${newChips} DMG`;
+    else if (mult > 1) statLine = `x${mult} MULT`;
+    if (shield > 0) statLine += (statLine ? ' | ' : '') + `+${shield} SHIELD`;
+    const statsEl = target.querySelector('.card-stats');
+    if (statsEl) statsEl.innerText = statLine;
+
     target.classList.add('glitch');
     setTimeout(() => target.classList.remove('glitch'), 400);
 }
@@ -415,10 +481,30 @@ window.updateHPBar = function() {
     }
 };
 
+function updateRoadmapUI(floorLevel) {
+    const steps = document.querySelectorAll('.roadmap-step');
+    steps.forEach(step => {
+        const stepNum = parseInt(step.getAttribute('data-step'));
+        step.classList.remove('active', 'completed');
+        const numSpan = step.querySelector('.step-num');
+
+        if (stepNum < floorLevel) {
+            step.classList.add('completed');
+            if (numSpan) numSpan.innerText = `✓ ${stepNum}`;
+        } else if (stepNum === floorLevel) {
+            step.classList.add('active');
+            if (numSpan) numSpan.innerText = stepNum === 5 ? '🤖 5' : `${stepNum}`;
+        } else {
+            if (numSpan) numSpan.innerText = stepNum === 5 ? '🤖 5' : `${stepNum}`;
+        }
+    });
+}
+
 // --- FLOOR PROGRESSION & ANOMALIES ---
 window.loadFloor = function(floorLevel) {
     currentFloor = floorLevel;
     document.getElementById('floor-display').innerText = `FLOOR: ${floorLevel}/5`;
+    updateRoadmapUI(floorLevel);
 
     const enemyData = enemyTemplates[floorLevel - 1];
     enemyMaxHP = enemyData.hp;
@@ -726,6 +812,25 @@ window.showStatsModal = function() {
 
 window.closeStatsModal = function() {
     document.getElementById('modal-stats').style.display = 'none';
+};
+
+window.showHelpModal = function() {
+    initAudio();
+    const modal = document.getElementById('modal-help');
+    if (modal) {
+        modal.style.display = 'flex';
+        window.sfxClick();
+    }
+};
+
+window.closeHelpModal = function() {
+    initAudio();
+    const modal = document.getElementById('modal-help');
+    if (modal) {
+        modal.style.display = 'none';
+        localStorage.setItem('sudobreach_briefing_seen', 'true');
+        window.sfxClick();
+    }
 };
 
 function shakeElement(elem) {
