@@ -2,10 +2,11 @@
   "name": "sudobreach",
   "version": "1.0.0",
   "description": "Cyberpunk roguelike deckbuilder with AI boss battles",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env scripts/dev-server.js",
-    "dev": "node --env-file=.env scripts/dev-server.js"
+    "start": "node --env-file=.env server.js",
+    "dev": "node --env-file=.env server.js"
   },
   "keywords": [
     "game",
