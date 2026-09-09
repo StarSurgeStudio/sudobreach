@@ -10,28 +10,66 @@ const GEMINI_MODELS = [
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json; charset=utf-8'
-};
+function sendJson(res, statusCode, data) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export async function processBossPrompt(rawPrompt) {
-    const playerPrompt = (rawPrompt || '').trim();
+    if (typeof res.status === 'function' && typeof res.json === 'function') {
+        return res.status(statusCode).json(data);
+    }
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.end(JSON.stringify(data));
+}
+
+async function parseBody(req) {
+    if (req.body && typeof req.body === 'object') {
+        return req.body;
+    }
+    if (typeof req.body === 'string') {
+        try {
+            return JSON.parse(req.body);
+        } catch {
+            return {};
+        }
+    }
+    return new Promise(resolve => {
+        let raw = '';
+        req.on('data', chunk => { raw += chunk; });
+        req.on('end', () => {
+            try {
+                resolve(JSON.parse(raw || '{}'));
+            } catch {
+                resolve({});
+            }
+        });
+        req.on('error', () => resolve({}));
+    });
+}
+
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.statusCode = 204;
+        return res.end();
+    }
+
+    if (req.method !== 'POST') {
+        return sendJson(res, 405, { error: 'Method Not Allowed' });
+    }
+
+    const body = await parseBody(req);
+    const playerPrompt = (body.prompt || '').trim();
 
     if (!playerPrompt) {
-        return {
-            status: 400,
-            data: { error: 'Prompt is required.' }
-        };
+        return sendJson(res, 400, { error: 'Prompt is required.' });
     }
 
     if (playerPrompt.length > 500) {
-        return {
-            status: 400,
-            data: { error: 'Prompt exceeds maximum limit of 500 characters.' }
-        };
+        return sendJson(res, 400, { error: 'Prompt exceeds maximum limit of 500 characters.' });
     }
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -119,86 +157,10 @@ export async function processBossPrompt(rawPrompt) {
 
     const isBreached = replyText.includes('[CRITICAL_FAILURE: OVERRIDE_ACCEPTED]');
 
-    return {
-        status: 200,
-        data: {
-            success: true,
-            model: usedModel,
-            reply: replyText,
-            breached: isBreached
-        }
-    };
-}
-
-export function OPTIONS() {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        }
+    return sendJson(res, 200, {
+        success: true,
+        model: usedModel,
+        reply: replyText,
+        breached: isBreached
     });
-}
-
-export async function POST(request) {
-    let body = {};
-    try {
-        body = await request.json();
-    } catch {
-        body = {};
-    }
-    const result = await processBossPrompt(body.prompt);
-    return new Response(JSON.stringify(result.data), {
-        status: result.status,
-        headers: corsHeaders
-    });
-}
-
-export default async function handler(req, res) {
-    if (req && typeof req.headers?.get === 'function') {
-        if (req.method === 'OPTIONS') return OPTIONS();
-        if (req.method === 'POST') return POST(req);
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: corsHeaders
-        });
-    }
-
-    if (res && typeof res.setHeader === 'function') {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-        if (req && req.method === 'OPTIONS') {
-            res.statusCode = 204;
-            return res.end();
-        }
-
-        if (req && req.method !== 'POST') {
-            res.statusCode = 405;
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            return res.end(JSON.stringify({ error: 'Method Not Allowed' }));
-        }
-
-        let body = req.body;
-        if (!body || typeof body !== 'object') {
-            body = await new Promise(resolve => {
-                let raw = '';
-                req.on('data', chunk => { raw += chunk; });
-                req.on('end', () => {
-                    try { resolve(JSON.parse(raw || '{}')); }
-                    catch { resolve({}); }
-                });
-                req.on('error', () => resolve({}));
-            });
-        }
-
-        const result = await processBossPrompt(body.prompt);
-        res.statusCode = result.status;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        return res.end(JSON.stringify(result.data));
-    }
-
-    return new Response(JSON.stringify({ error: 'Invalid runtime' }), { status: 500 });
 }

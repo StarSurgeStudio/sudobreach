@@ -8,55 +8,27 @@ const GEMINI_MODELS = [
     'gemini-3.6-flash'
 ];
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json; charset=utf-8'
-};
+export default function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export function OPTIONS() {
-    return new Response(null, {
-        status: 204,
-        headers: corsHeaders
-    });
-}
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        return res.end();
+    }
 
-export function GET() {
-    return new Response(JSON.stringify({
+    const payload = {
         status: 'ok',
         models: GEMINI_MODELS,
         keyConfigured: Boolean(process.env.GEMINI_API_KEY)
-    }), {
-        status: 200,
-        headers: corsHeaders
-    });
-}
+    };
 
-export default async function handler(req, res) {
-    if (req && typeof req.headers?.get === 'function') {
-        if (req.method === 'OPTIONS') return OPTIONS();
-        return GET();
+    if (typeof res.status === 'function' && typeof res.json === 'function') {
+        return res.status(200).json(payload);
     }
 
-    if (res && typeof res.setHeader === 'function') {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-        if (req && req.method === 'OPTIONS') {
-            res.statusCode = 204;
-            return res.end();
-        }
-
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        return res.end(JSON.stringify({
-            status: 'ok',
-            models: GEMINI_MODELS,
-            keyConfigured: Boolean(process.env.GEMINI_API_KEY)
-        }));
-    }
-
-    return GET();
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.end(JSON.stringify(payload));
 }
